@@ -9,7 +9,11 @@ echo Create directory where we will make the image
 mkdir -p $HOME/LIVE_BOOT
 
 echo Install Debian
-debootstrap --arch=amd64 --variant=minbase buster $HOME/LIVE_BOOT/chroot http://ftp.us.debian.org/debian/
+
+if [ ! -d $HOME/LIVE_BOOT/chroot ]; then
+    debootstrap --arch=amd64 --variant=minbase bullseye $HOME/LIVE_BOOT/chroot http://ftp.us.debian.org/debian/
+fi
+
 
 echo Copy supporting documents into the chroot
 cp -v /supportFiles/installChroot.sh $HOME/LIVE_BOOT/chroot/installChroot.sh
@@ -33,8 +37,16 @@ chown -v root:root $HOME/LIVE_BOOT/chroot/etc/systemd/network/99-dhcp-en.network
 chmod -v 644 $HOME/LIVE_BOOT/chroot/etc/systemd/network/99-dhcp-en.network
 
 echo Enable autologin
-mkdir -p -v $HOME/LIVE_BOOT/chroot/etc/systemd/system/getty@tty1.service.d/
+mkdir -p -v $HOME/LIVE_BOOT/chroot/etc/systemd/system/getty@tty1.service.d/ 
+mkdir -p -v $HOME/LIVE_BOOT/chroot/etc/systemd/system/serial-getty@ttyS0.service.d/
+mkdir -p -v $HOME/LIVE_BOOT/chroot/etc/systemd/system/serial-getty@ttyS1.service.d/
 cp -v /supportFiles/override.conf $HOME/LIVE_BOOT/chroot/etc/systemd/system/getty@tty1.service.d/override.conf
+cp -v /supportFiles/override.conf $HOME/LIVE_BOOT/chroot/etc/systemd/system/serial-getty@ttyS0.service.d/override.conf
+cp -v /supportFiles/override.conf $HOME/LIVE_BOOT/chroot/etc/systemd/system/serial-getty@ttyS1.service.d/override.conf
+cat >>$HOME/LIVE_BOOT/chroot/root/.bash_profile <<EOF
+/bin/installer.sh
+EOF
+cp -v /supportFiles/installer.sh $HOME/LIVE_BOOT/chroot/bin/installer.sh
 
 echo Unmounting dev / proc / sys
 umount $HOME/LIVE_BOOT/chroot/proc
@@ -45,6 +57,7 @@ echo Create directories that will contain files for our live environment files a
 mkdir -p $HOME/LIVE_BOOT/{staging/{EFI/boot,boot/grub/x86_64-efi,isolinux,live},tmp}
 
 echo Compress the chroot environment into a Squash filesystem.
+rm -f $HOME/LIVE_BOOT/staging/live/filesystem.squashfs
 mksquashfs $HOME/LIVE_BOOT/chroot $HOME/LIVE_BOOT/staging/live/filesystem.squashfs -e boot
 
 echo Copy kernel and initrd
