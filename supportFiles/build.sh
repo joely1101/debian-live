@@ -47,6 +47,8 @@ cat >>$HOME/LIVE_BOOT/chroot/root/.bash_profile <<EOF
 /bin/installer.sh
 EOF
 cp -v /supportFiles/installer.sh $HOME/LIVE_BOOT/chroot/bin/installer.sh
+cp -v /supportFiles/disk_backup.sh $HOME/LIVE_BOOT/chroot/bin/
+cp -v /supportFiles/disk_restore.sh $HOME/LIVE_BOOT/chroot/bin/
 
 echo Unmounting dev / proc / sys
 umount $HOME/LIVE_BOOT/chroot/proc
